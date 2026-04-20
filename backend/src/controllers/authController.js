@@ -5,12 +5,17 @@ const bcrypt = require('bcryptjs');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
-    expiresIn: '30d'
+    expiresIn: '30d',
   });
 };
 
 exports.register = async (req, res, next) => {
-  return res.status(403).json({ success: false, message: 'Public registration is disabled. Please contact your system administrator.' });
+  return res
+    .status(403)
+    .json({
+      success: false,
+      message: 'Public registration is disabled. Please contact your system administrator.',
+    });
 };
 
 exports.login = async (req, res, next) => {
@@ -39,8 +44,8 @@ exports.login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         tenant_id: user.tenant_id,
-        token: generateToken(user._id)
-      }
+        token: generateToken(user._id),
+      },
     });
   } catch (error) {
     next(error);

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-const connectDB = require("../src/config/db");
-const Tenant = require("../src/models/tenantModel");
-const Contact = require("../src/models/contactModel");
-const { createExotelClient } = require("./utils/exotelClient");
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const connectDB = require('../src/config/db');
+const Tenant = require('../src/models/tenantModel');
+const Contact = require('../src/models/contactModel');
+const { createExotelClient } = require('./utils/exotelClient');
 
 dotenv.config();
 
@@ -14,12 +14,12 @@ function getTenantIdFromArgs() {
 
   if (!tenantObjectId) {
     throw new Error(
-      "Missing tenantObjectId. Usage: node scripts/syncExotelContacts.js <tenantObjectId>",
+      'Missing tenantObjectId. Usage: node scripts/syncExotelContacts.js <tenantObjectId>'
     );
   }
 
   if (!mongoose.Types.ObjectId.isValid(tenantObjectId)) {
-    throw new Error("Invalid tenantObjectId. Please provide a valid Mongo ObjectId.");
+    throw new Error('Invalid tenantObjectId. Please provide a valid Mongo ObjectId.');
   }
 
   return tenantObjectId;
@@ -31,14 +31,13 @@ async function fetchExotelContacts(exotelClient) {
   const allContacts = [];
 
   while (true) {
-    const data = await exotelClient.request(
-      `/contacts?offset=${offset}&limit=${limit}`,
-      { method: "GET" },
-    );
+    const data = await exotelClient.request(`/contacts?offset=${offset}&limit=${limit}`, {
+      method: 'GET',
+    });
 
     const records = Array.isArray(data.response) ? data.response : [];
     const successfulContacts = records
-      .filter((record) => record && record.status === "success" && record.data)
+      .filter((record) => record && record.status === 'success' && record.data)
       .map((record) => record.data);
 
     allContacts.push(...successfulContacts);
@@ -48,9 +47,7 @@ async function fetchExotelContacts(exotelClient) {
     const currentOffset = Number(metadata.offset);
     const currentLimit = Number(metadata.limit || limit);
     const hasPaginationInfo =
-      Number.isFinite(total) &&
-      Number.isFinite(currentOffset) &&
-      Number.isFinite(currentLimit);
+      Number.isFinite(total) && Number.isFinite(currentOffset) && Number.isFinite(currentLimit);
 
     if (hasPaginationInfo) {
       const nextOffset = currentOffset + currentLimit;
@@ -80,11 +77,11 @@ function buildBulkUpsertOperations(tenantObjectId, contacts) {
           filter,
           update: {
             $set: {
-              phone_no: contact.number || "",
-              first_name: contact.first_name || "Unknown",
-              last_name: contact.last_name || "",
-              email: contact.email || "",
-              tag: contact.tag || "",
+              phone_no: contact.number || '',
+              first_name: contact.first_name || 'Unknown',
+              last_name: contact.last_name || '',
+              email: contact.email || '',
+              tag: contact.tag || '',
               exotel_sid: contact.sid || undefined,
               tenant_id: tenantObjectId,
             },
@@ -113,13 +110,13 @@ async function run() {
   console.log(`Fetched ${exotelContacts.length} contacts from Exotel`);
 
   if (!exotelContacts.length) {
-    console.log("No contacts found on Exotel. Nothing to sync.");
+    console.log('No contacts found on Exotel. Nothing to sync.');
     return;
   }
 
   const operations = buildBulkUpsertOperations(tenantObjectId, exotelContacts);
   if (!operations.length) {
-    console.log("No valid contacts to write after mapping. Nothing to sync.");
+    console.log('No valid contacts to write after mapping. Nothing to sync.');
     return;
   }
 
@@ -128,20 +125,18 @@ async function run() {
   const modified = result.modifiedCount || 0;
   const matched = result.matchedCount || 0;
 
-  console.log(
-    `Sync complete. Upserted: ${upserted}, Modified: ${modified}, Matched: ${matched}`,
-  );
+  console.log(`Sync complete. Upserted: ${upserted}, Modified: ${modified}, Matched: ${matched}`);
 }
 
 run()
   .catch((error) => {
-    console.error("Sync failed:", error.message);
+    console.error('Sync failed:', error.message);
     process.exitCode = 1;
   })
   .finally(async () => {
     try {
       await mongoose.connection.close();
     } catch (error) {
-      console.error("Failed to close DB connection:", error.message);
+      console.error('Failed to close DB connection:', error.message);
     }
   });

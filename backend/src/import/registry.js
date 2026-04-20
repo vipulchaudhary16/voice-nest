@@ -1,4 +1,4 @@
-const contactCsv = require("./definitions/contactCsv");
+const contactCsv = require('./definitions/contactCsv');
 
 /**
  * CSV import framework
@@ -15,7 +15,7 @@ const registry = {
 };
 
 function getDefinition(type) {
-  if (!type || typeof type !== "string") return null;
+  if (!type || typeof type !== 'string') return null;
   return registry[type] || null;
 }
 

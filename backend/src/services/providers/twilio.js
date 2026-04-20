@@ -4,17 +4,17 @@
  * Handles outbound call initiation via Twilio SDK.
  */
 
-const twilio = require("twilio");
-const config = require("../config");
-const logger = require("../utils/logger");
+const twilio = require('twilio');
+const config = require('../config');
+const logger = require('../utils/logger');
 
 let client = null;
 
 if (config.twilio.isConfigured) {
   client = twilio(config.twilio.accountSid, config.twilio.authToken);
-  logger.success("Twilio: configured");
+  logger.success('Twilio: configured');
 } else {
-  logger.warn("Twilio: not configured (check TWILIO_* in .env)");
+  logger.warn('Twilio: not configured (check TWILIO_* in .env)');
 }
 
 /**
@@ -24,7 +24,7 @@ if (config.twilio.isConfigured) {
  */
 async function makeCall(to) {
   if (!client) {
-    throw new Error("Twilio credentials not configured. Check .env file.");
+    throw new Error('Twilio credentials not configured. Check .env file.');
   }
 
   const call = await client.calls.create({
@@ -32,10 +32,10 @@ async function makeCall(to) {
     from: config.twilio.number,
     url: `${config.server.publicUrl}/voice`,
     statusCallback: `${config.server.publicUrl}/status-callback`,
-    statusCallbackEvent: ["completed"],
+    statusCallbackEvent: ['completed'],
   });
 
-  return call.sid || "";
+  return call.sid || '';
 }
 
 /**

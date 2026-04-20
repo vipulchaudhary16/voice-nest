@@ -1,10 +1,10 @@
 function digitsOnly(s) {
-  return String(s ?? "").replace(/\D/g, "");
+  return String(s ?? '').replace(/\D/g, '');
 }
 
 function contactDisplayName(c) {
-  const name = [c.first_name, c.last_name].filter(Boolean).join(" ").trim();
-  return name || c.phone_no || "";
+  const name = [c.first_name, c.last_name].filter(Boolean).join(' ').trim();
+  return name || c.phone_no || '';
 }
 
 /** Map full digits and last-10 digits (when length ≥ 10) → display name */

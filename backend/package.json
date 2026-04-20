@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "sync:contacts": "node scripts/syncExotelContacts.js",
     "sync:lists": "node scripts/syncExotelLists.js",
     "sync:campaigns": "node scripts/syncExotelCampaigns.js",
@@ -24,6 +26,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3"
   }
 }

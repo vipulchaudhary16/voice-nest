@@ -5,9 +5,9 @@
  * Single entry point for all outbound call operations.
  */
 
-const twilioProvider = require("./twilio");
-const exotelProvider = require("./exotel");
-const config = require("../config");
+const twilioProvider = require('./twilio');
+const exotelProvider = require('./exotel');
+const config = require('../config');
 
 const providers = {
   twilio: twilioProvider,

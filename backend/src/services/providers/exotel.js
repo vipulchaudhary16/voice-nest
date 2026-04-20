@@ -4,16 +4,16 @@
  * Handles outbound call initiation via Exotel REST API.
  */
 
-const axios = require("axios");
-const config = require("../config");
-const logger = require("../utils/logger");
+const axios = require('axios');
+const config = require('../config');
+const logger = require('../utils/logger');
 
 const { sid, apiKey, apiToken, number } = config.exotel;
 
 if (config.exotel.isConfigured) {
-  logger.success("Exotel: configured");
+  logger.success('Exotel: configured');
 } else {
-  logger.warn("Exotel: not configured (check EXOTEL_* in .env)");
+  logger.warn('Exotel: not configured (check EXOTEL_* in .env)');
 }
 
 /**
@@ -23,7 +23,7 @@ if (config.exotel.isConfigured) {
  */
 async function makeCall(to) {
   if (!config.exotel.isConfigured) {
-    throw new Error("Exotel credentials not configured. Check .env file.");
+    throw new Error('Exotel credentials not configured. Check .env file.');
   }
 
   const url = `https://api.exotel.com/v1/Accounts/${sid}/Calls/connect.json`;
@@ -41,7 +41,7 @@ async function makeCall(to) {
     }
   );
 
-  return response.data?.Call?.Sid || "";
+  return response.data?.Call?.Sid || '';
 }
 
 /**

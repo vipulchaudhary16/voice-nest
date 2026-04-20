@@ -1,4 +1,4 @@
-const { getDefinition } = require("./registry");
+const { getDefinition } = require('./registry');
 
 /**
  * Generic CSV import runner: parse → validate rows → dedupe (optional per type) → persist.
@@ -14,8 +14,8 @@ async function run(type, csvText, context) {
     throw err;
   }
 
-  if (typeof csvText !== "string" || !csvText.trim()) {
-    const err = new Error("csvText is required and must be non-empty");
+  if (typeof csvText !== 'string' || !csvText.trim()) {
+    const err = new Error('csvText is required and must be non-empty');
     err.statusCode = 400;
     throw err;
   }
@@ -44,7 +44,7 @@ async function run(type, csvText, context) {
     }
   }
 
-  if (typeof def.dedupeKey !== "function") {
+  if (typeof def.dedupeKey !== 'function') {
     const err = new Error(`Import definition "${type}" must export dedupeKey(normalized)`);
     err.statusCode = 500;
     throw err;
@@ -67,7 +67,7 @@ async function run(type, csvText, context) {
     } catch (e) {
       persistErrors.push({
         row,
-        message: e.message || "Persist failed",
+        message: e.message || 'Persist failed',
       });
     }
   }

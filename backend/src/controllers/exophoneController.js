@@ -15,7 +15,7 @@ exports.createExophone = async (req, res, next) => {
     const exophone = await Exophone.create({
       phone_no,
       name,
-      tenant_id: req.user.tenant_id
+      tenant_id: req.user.tenant_id,
     });
     res.status(201).json({ success: true, data: exophone });
   } catch (error) {
@@ -25,7 +25,10 @@ exports.createExophone = async (req, res, next) => {
 
 exports.deleteExophone = async (req, res, next) => {
   try {
-    const exophone = await Exophone.findOneAndDelete({ _id: req.params.id, tenant_id: req.user.tenant_id });
+    const exophone = await Exophone.findOneAndDelete({
+      _id: req.params.id,
+      tenant_id: req.user.tenant_id,
+    });
     if (!exophone) return res.status(404).json({ success: false, message: 'Exophone not found' });
     res.status(200).json({ success: true, data: {} });
   } catch (error) {

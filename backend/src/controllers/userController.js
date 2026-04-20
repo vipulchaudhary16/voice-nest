@@ -17,13 +17,17 @@ exports.createUser = async (req, res, next) => {
     const { name, email, password, role, tenant_id } = req.body;
 
     if (role !== 'super_admin' && !tenant_id) {
-      return res.status(400).json({ success: false, message: 'tenant_id is required for normal users' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'tenant_id is required for normal users' });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: 'User with this email already exists' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'User with this email already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -34,10 +38,15 @@ exports.createUser = async (req, res, next) => {
       email,
       password: hashedPassword,
       role: role || 'user',
-      tenant_id
+      tenant_id,
     });
 
-    res.status(201).json({ success: true, data: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+    res
+      .status(201)
+      .json({
+        success: true,
+        data: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      });
   } catch (error) {
     next(error);
   }

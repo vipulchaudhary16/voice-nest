@@ -5,11 +5,8 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
-router.route('/')
-  .get(exophoneController.getExophones)
-  .post(exophoneController.createExophone);
+router.route('/').get(exophoneController.getExophones).post(exophoneController.createExophone);
 
-router.route('/:id')
-  .delete(exophoneController.deleteExophone);
+router.route('/:id').delete(exophoneController.deleteExophone);
 
 module.exports = router;

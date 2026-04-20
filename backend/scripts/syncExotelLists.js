@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-const connectDB = require("../src/config/db");
-const Tenant = require("../src/models/tenantModel");
-const List = require("../src/models/listModel");
-const { createExotelClient } = require("./utils/exotelClient");
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const connectDB = require('../src/config/db');
+const Tenant = require('../src/models/tenantModel');
+const List = require('../src/models/listModel');
+const { createExotelClient } = require('./utils/exotelClient');
 
 dotenv.config();
 
@@ -14,25 +14,23 @@ function getTenantIdFromArgs() {
 
   if (!tenantObjectId) {
     throw new Error(
-      "Missing tenantObjectId. Usage: node scripts/syncExotelLists.js <tenantObjectId>",
+      'Missing tenantObjectId. Usage: node scripts/syncExotelLists.js <tenantObjectId>'
     );
   }
 
   if (!mongoose.Types.ObjectId.isValid(tenantObjectId)) {
-    throw new Error(
-      "Invalid tenantObjectId. Please provide a valid Mongo ObjectId.",
-    );
+    throw new Error('Invalid tenantObjectId. Please provide a valid Mongo ObjectId.');
   }
 
   return tenantObjectId;
 }
 
 function getListSid(remoteList) {
-  if (!remoteList || typeof remoteList !== "object") return "";
+  if (!remoteList || typeof remoteList !== 'object') return '';
 
   // Exotel docs use "id", but keep fallbacks for API shape changes.
   const sid = remoteList.id || remoteList.sid || remoteList.list_sid;
-  return sid ? String(sid) : "";
+  return sid ? String(sid) : '';
 }
 
 async function fetchExotelLists(exotelClient) {
@@ -41,14 +39,13 @@ async function fetchExotelLists(exotelClient) {
   const allLists = [];
 
   while (true) {
-    const data = await exotelClient.request(
-      `/lists?offset=${offset}&limit=${limit}`,
-      { method: "GET" },
-    );
+    const data = await exotelClient.request(`/lists?offset=${offset}&limit=${limit}`, {
+      method: 'GET',
+    });
 
     const records = Array.isArray(data.response) ? data.response : [];
     const successfulLists = records
-      .filter((record) => record && record.status === "success" && record.data)
+      .filter((record) => record && record.status === 'success' && record.data)
       .map((record) => record.data);
 
     allLists.push(...successfulLists);
@@ -58,9 +55,7 @@ async function fetchExotelLists(exotelClient) {
     const currentOffset = Number(metadata.offset);
     const currentLimit = Number(metadata.limit || limit);
     const hasPaginationInfo =
-      Number.isFinite(total) &&
-      Number.isFinite(currentOffset) &&
-      Number.isFinite(currentLimit);
+      Number.isFinite(total) && Number.isFinite(currentOffset) && Number.isFinite(currentLimit);
 
     if (hasPaginationInfo) {
       const nextOffset = currentOffset + currentLimit;
@@ -80,7 +75,7 @@ function buildBulkUpsertOperations(tenantObjectId, remoteLists) {
   return remoteLists
     .map((remoteList) => {
       const exotelSid = getListSid(remoteList);
-      const name = remoteList?.name ? String(remoteList.name) : "";
+      const name = remoteList?.name ? String(remoteList.name) : '';
 
       if (!exotelSid && !name) return null;
 
@@ -94,7 +89,7 @@ function buildBulkUpsertOperations(tenantObjectId, remoteLists) {
           update: {
             $set: {
               name: name || `List-${exotelSid}`,
-              tag: remoteList?.tag || "",
+              tag: remoteList?.tag || '',
               exotel_sid: exotelSid || undefined,
               tenant_id: tenantObjectId,
             },
@@ -122,13 +117,13 @@ async function run() {
   console.log(`Fetched ${remoteLists.length} lists from Exotel`);
 
   if (!remoteLists.length) {
-    console.log("No lists found on Exotel. Nothing to sync.");
+    console.log('No lists found on Exotel. Nothing to sync.');
     return;
   }
 
   const operations = buildBulkUpsertOperations(tenantObjectId, remoteLists);
   if (!operations.length) {
-    console.log("No valid lists to write after mapping. Nothing to sync.");
+    console.log('No valid lists to write after mapping. Nothing to sync.');
     return;
   }
 
@@ -138,19 +133,19 @@ async function run() {
   const matched = result.matchedCount || 0;
 
   console.log(
-    `List sync complete. Upserted: ${upserted}, Modified: ${modified}, Matched: ${matched}`,
+    `List sync complete. Upserted: ${upserted}, Modified: ${modified}, Matched: ${matched}`
   );
 }
 
 run()
   .catch((error) => {
-    console.error("List sync failed:", error.message);
+    console.error('List sync failed:', error.message);
     process.exitCode = 1;
   })
   .finally(async () => {
     try {
       await mongoose.connection.close();
     } catch (error) {
-      console.error("Failed to close DB connection:", error.message);
+      console.error('Failed to close DB connection:', error.message);
     }
   });

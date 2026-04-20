@@ -4,11 +4,10 @@ const campaignController = require('../controllers/campaignController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.use(protect);
-router.route('/')
-  .get(campaignController.getCampaigns)
-  .post(campaignController.createCampaign);
+router.route('/').get(campaignController.getCampaigns).post(campaignController.createCampaign);
 
-router.route('/:id')
+router
+  .route('/:id')
   .get(campaignController.getCampaign)
   .put(campaignController.updateCampaign)
   .delete(campaignController.deleteCampaign);

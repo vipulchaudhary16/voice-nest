@@ -5,7 +5,7 @@
  */
 function parseCsvLine(line) {
   const result = [];
-  let current = "";
+  let current = '';
   let inQuotes = false;
   for (let i = 0; i < line.length; i += 1) {
     const ch = line[i];
@@ -22,9 +22,9 @@ function parseCsvLine(line) {
       }
     } else if (ch === '"') {
       inQuotes = true;
-    } else if (ch === ",") {
+    } else if (ch === ',') {
       result.push(current);
-      current = "";
+      current = '';
     } else {
       current += ch;
     }
@@ -39,7 +39,7 @@ function parseCsvLine(line) {
  */
 function splitLines(text) {
   return text
-    .replace(/^\uFEFF/, "")
+    .replace(/^\uFEFF/, '')
     .split(/\r?\n/)
     .map((l) => l.trimEnd())
     .filter((l) => l.length > 0);
@@ -51,10 +51,7 @@ function splitLines(text) {
  * @param {Record<string, string>} aliases
  */
 function canonicalHeader(raw, aliases) {
-  const key = String(raw)
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "_");
+  const key = String(raw).trim().toLowerCase().replace(/\s+/g, '_');
   if (aliases[key] != null) return aliases[key];
   return key;
 }
@@ -75,7 +72,7 @@ function parseCsvObjects(csvText, headerAliases = {}) {
     const cells = parseCsvLine(line);
     const row = {};
     headers.forEach((h, idx) => {
-      row[h] = cells[idx] != null ? String(cells[idx]).trim() : "";
+      row[h] = cells[idx] != null ? String(cells[idx]).trim() : '';
     });
     return row;
   });

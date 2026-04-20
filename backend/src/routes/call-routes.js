@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const callController = require("../controllers/callController");
-const { protect } = require("../middleware/authMiddleware");
+const callController = require('../controllers/callController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.get("/exotel/press/:keypad_no", callController.exotelWebhook); // Exotel Webhook mapping (no JWT)
+router.get('/exotel/press/:keypad_no', callController.exotelWebhook); // Exotel Webhook mapping (no JWT)
 
 // getCalls needs auth; do not use router.use(protect) here — same router is mounted at "/" for Exotel
-router.get("/", protect, callController.getCalls);
+router.get('/', protect, callController.getCalls);
 
 module.exports = router;
 

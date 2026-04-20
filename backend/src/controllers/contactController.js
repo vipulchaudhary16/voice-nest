@@ -17,12 +17,7 @@ function buildContactListFilter(tenant_id, qRaw, tagRaw) {
   if (q) {
     const needle = escapeRegex(q);
     const re = new RegExp(needle, 'i');
-    const or = [
-      { first_name: re },
-      { last_name: re },
-      { email: re },
-      { phone_no: re },
-    ];
+    const or = [{ first_name: re }, { last_name: re }, { email: re }, { phone_no: re }];
     const digits = q.replace(/\D/g, '');
     if (digits.length >= 2) {
       or.push({ phone_no: { $regex: escapeRegex(digits) } });
@@ -51,8 +46,8 @@ exports.getContactTags = async (req, res, next) => {
       tenant_id: req.user.tenant_id,
       tag: { $nin: [null, ''] },
     });
-    const cleaned = [...new Set(tags.map((t) => String(t || '').trim()).filter(Boolean))].sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    const cleaned = [...new Set(tags.map((t) => String(t || '').trim()).filter(Boolean))].sort(
+      (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })
     );
     res.status(200).json({ success: true, data: cleaned });
   } catch (error) {
@@ -63,9 +58,14 @@ exports.getContactTags = async (req, res, next) => {
 exports.createContact = async (req, res, next) => {
   try {
     const { first_name, last_name, email, phone_no, tag, exotel_sid, sync_to_exotel } = req.body;
-    
+
     if (!phone_no || !phone_no.startsWith('+')) {
-      return res.status(400).json({ success: false, message: 'Phone number must include a country code starting with +' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Phone number must include a country code starting with +',
+        });
     }
 
     let final_sid = exotel_sid;
@@ -73,21 +73,34 @@ exports.createContact = async (req, res, next) => {
     if (sync_to_exotel) {
       const Tenant = require('../models/tenantModel');
       const tenant = await Tenant.findById(req.user.tenant_id);
-      
+
       const exotelService = require('../services/exotelService');
-      const syncRes = await exotelService.syncContacts(tenant, [{
-        phone_no, first_name, last_name, email, tag
-      }]);
+      const syncRes = await exotelService.syncContacts(tenant, [
+        {
+          phone_no,
+          first_name,
+          last_name,
+          email,
+          tag,
+        },
+      ]);
 
       if (syncRes && syncRes.response && syncRes.response.length > 0) {
         const contactResponse = syncRes.response[0];
         if (contactResponse.status === 'success') {
           final_sid = contactResponse.data.sid;
         } else {
-          return res.status(400).json({ success: false, message: 'Exotel Sync Failed: ' + JSON.stringify(contactResponse.error_data) });
+          return res
+            .status(400)
+            .json({
+              success: false,
+              message: 'Exotel Sync Failed: ' + JSON.stringify(contactResponse.error_data),
+            });
         }
       } else {
-        return res.status(400).json({ success: false, message: 'Exotel Sync Failed: Invalid response structure' });
+        return res
+          .status(400)
+          .json({ success: false, message: 'Exotel Sync Failed: Invalid response structure' });
       }
     }
 
@@ -98,7 +111,7 @@ exports.createContact = async (req, res, next) => {
       phone_no,
       tag,
       exotel_sid: final_sid,
-      tenant_id: req.user.tenant_id
+      tenant_id: req.user.tenant_id,
     });
     res.status(201).json({ success: true, data: contact });
   } catch (error) {
@@ -122,7 +135,10 @@ exports.updateContact = async (req, res, next) => {
 
 exports.deleteContact = async (req, res, next) => {
   try {
-    const contact = await Contact.findOneAndDelete({ _id: req.params.id, tenant_id: req.user.tenant_id });
+    const contact = await Contact.findOneAndDelete({
+      _id: req.params.id,
+      tenant_id: req.user.tenant_id,
+    });
     if (!contact) return res.status(404).json({ success: false, message: 'Contact not found' });
     res.status(200).json({ success: true, data: {} });
   } catch (error) {

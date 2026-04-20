@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-const connectDB = require("../src/config/db");
-const Tenant = require("../src/models/tenantModel");
-const Campaign = require("../src/models/campaignModel");
-const Exophone = require("../src/models/exophoneModel");
-const List = require("../src/models/listModel");
-const { createExotelClient } = require("./utils/exotelClient");
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const connectDB = require('../src/config/db');
+const Tenant = require('../src/models/tenantModel');
+const Campaign = require('../src/models/campaignModel');
+const Exophone = require('../src/models/exophoneModel');
+const List = require('../src/models/listModel');
+const { createExotelClient } = require('./utils/exotelClient');
 
 dotenv.config();
 
@@ -16,14 +16,12 @@ function getTenantIdFromArgs() {
 
   if (!tenantObjectId) {
     throw new Error(
-      "Missing tenantObjectId. Usage: node scripts/syncExotelCampaigns.js <tenantObjectId>",
+      'Missing tenantObjectId. Usage: node scripts/syncExotelCampaigns.js <tenantObjectId>'
     );
   }
 
   if (!mongoose.Types.ObjectId.isValid(tenantObjectId)) {
-    throw new Error(
-      "Invalid tenantObjectId. Please provide a valid Mongo ObjectId.",
-    );
+    throw new Error('Invalid tenantObjectId. Please provide a valid Mongo ObjectId.');
   }
 
   return tenantObjectId;
@@ -35,14 +33,13 @@ async function fetchExotelCampaigns(exotelClient) {
   const allCampaigns = [];
 
   while (true) {
-    const data = await exotelClient.request(
-      `/campaigns?offset=${offset}&limit=${limit}`,
-      { method: "GET" },
-    );
+    const data = await exotelClient.request(`/campaigns?offset=${offset}&limit=${limit}`, {
+      method: 'GET',
+    });
 
     const records = Array.isArray(data.response) ? data.response : [];
     const successfulCampaigns = records
-      .filter((record) => record && record.status === "success" && record.data)
+      .filter((record) => record && record.status === 'success' && record.data)
       .map((record) => record.data);
 
     allCampaigns.push(...successfulCampaigns);
@@ -52,9 +49,7 @@ async function fetchExotelCampaigns(exotelClient) {
     const currentOffset = Number(metadata.offset);
     const currentLimit = Number(metadata.limit || limit);
     const hasPaginationInfo =
-      Number.isFinite(total) &&
-      Number.isFinite(currentOffset) &&
-      Number.isFinite(currentLimit);
+      Number.isFinite(total) && Number.isFinite(currentOffset) && Number.isFinite(currentLimit);
 
     if (hasPaginationInfo) {
       const nextOffset = currentOffset + currentLimit;
@@ -77,14 +72,14 @@ function toDateOrUndefined(value) {
 }
 
 function normalizePhoneNumber(value) {
-  if (!value) return "";
-  return String(value).replace(/[^\d+]/g, "");
+  if (!value) return '';
+  return String(value).replace(/[^\d+]/g, '');
 }
 
 async function buildReferencesBySid(tenantObjectId) {
   const [exophones, lists] = await Promise.all([
-    Exophone.find({ tenant_id: tenantObjectId }).select("_id phone_no").lean(),
-    List.find({ tenant_id: tenantObjectId }).select("_id exotel_sid").lean(),
+    Exophone.find({ tenant_id: tenantObjectId }).select('_id phone_no').lean(),
+    List.find({ tenant_id: tenantObjectId }).select('_id exotel_sid').lean(),
   ]);
 
   const exophoneByPhone = new Map();
@@ -131,7 +126,7 @@ async function upsertCampaigns(tenantObjectId, remoteCampaigns, refs) {
   };
 
   for (const remoteCampaign of remoteCampaigns) {
-    const exotelSid = remoteCampaign.id ? String(remoteCampaign.id) : "";
+    const exotelSid = remoteCampaign.id ? String(remoteCampaign.id) : '';
     if (!exotelSid) {
       stats.skippedNoExotelSid += 1;
       continue;
@@ -141,18 +136,16 @@ async function upsertCampaigns(tenantObjectId, remoteCampaigns, refs) {
       tenantObjectId,
       remoteCampaign.caller_id,
       refs,
-      stats,
+      stats
     );
     const mappedListIds = Array.isArray(remoteCampaign.lists)
-      ? remoteCampaign.lists
-          .map((sid) => refs.listByExotelSid.get(String(sid)))
-          .filter(Boolean)
+      ? remoteCampaign.lists.map((sid) => refs.listByExotelSid.get(String(sid))).filter(Boolean)
       : [];
 
     const updatePayload = {
       name: remoteCampaign.name || `Campaign-${exotelSid}`,
       lists: mappedListIds,
-      campaign_type: remoteCampaign.campaign_type || "static",
+      campaign_type: remoteCampaign.campaign_type || 'static',
       flow_type: remoteCampaign.flow_type,
       read_via_text: remoteCampaign.read_via_text,
       url: remoteCampaign.url,
@@ -162,7 +155,7 @@ async function upsertCampaigns(tenantObjectId, remoteCampaigns, refs) {
         end_at: toDateOrUndefined(remoteCampaign.schedule?.end_at),
       },
       exotel_sid: exotelSid,
-      status: remoteCampaign.status || "Created",
+      status: remoteCampaign.status || 'Created',
       tenant_id: tenantObjectId,
     };
 
@@ -220,15 +213,13 @@ async function run() {
   }
 
   const exotelClient = createExotelClient(tenant);
-  console.log(
-    `Campaign sync started for tenant: ${tenant.name} (${tenantObjectId})`,
-  );
+  console.log(`Campaign sync started for tenant: ${tenant.name} (${tenantObjectId})`);
 
   const remoteCampaigns = await fetchExotelCampaigns(exotelClient);
   console.log(`Fetched ${remoteCampaigns.length} campaigns from Exotel`);
 
   if (!remoteCampaigns.length) {
-    console.log("No campaigns found on Exotel. Nothing to sync.");
+    console.log('No campaigns found on Exotel. Nothing to sync.');
     return;
   }
 
@@ -236,19 +227,19 @@ async function run() {
   const result = await upsertCampaigns(tenantObjectId, remoteCampaigns, refs);
 
   console.log(
-    `Campaign sync complete. Created: ${result.created}, Updated: ${result.updated}, ExophonesCreated: ${result.exophoneCreated}, Skipped(no_sid): ${result.skippedNoExotelSid}, Skipped(no_caller_mapping): ${result.skippedNoCallerMapping}`,
+    `Campaign sync complete. Created: ${result.created}, Updated: ${result.updated}, ExophonesCreated: ${result.exophoneCreated}, Skipped(no_sid): ${result.skippedNoExotelSid}, Skipped(no_caller_mapping): ${result.skippedNoCallerMapping}`
   );
 }
 
 run()
   .catch((error) => {
-    console.error("Campaign sync failed:", error.message);
+    console.error('Campaign sync failed:', error.message);
     process.exitCode = 1;
   })
   .finally(async () => {
     try {
       await mongoose.connection.close();
     } catch (error) {
-      console.error("Failed to close DB connection:", error.message);
+      console.error('Failed to close DB connection:', error.message);
     }
   });

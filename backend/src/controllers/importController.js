@@ -1,5 +1,5 @@
-const { getDefinition, listDefinitions } = require("../import/registry");
-const ImportRunner = require("../import/ImportRunner");
+const { getDefinition, listDefinitions } = require('../import/registry');
+const ImportRunner = require('../import/ImportRunner');
 
 exports.listImportTypes = (req, res) => {
   res.status(200).json({ success: true, data: listDefinitions() });
@@ -16,11 +16,8 @@ exports.downloadTemplate = (req, res, next) => {
       });
     }
     const body = def.buildTemplateCsv();
-    res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${def.templateFileName}"`,
-    );
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${def.templateFileName}"`);
     return res.status(200).send(body);
   } catch (e) {
     return next(e);
