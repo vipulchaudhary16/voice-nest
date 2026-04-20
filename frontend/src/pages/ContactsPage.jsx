@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import api from '../services/api';
-import { Plus, Trash2, ListPlus, Download, Upload, FileDown, MoreVertical, Layers, Search, Tag } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  ListPlus,
+  Download,
+  Upload,
+  FileDown,
+  MoreVertical,
+  Layers,
+  Search,
+  Tag,
+} from 'lucide-react';
 import DataTable from '../components/DataTable';
 import DropdownMenu from '../components/DropdownMenu';
 
@@ -44,7 +55,14 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', email: '', phone_no: '', tag: '', sync_to_exotel: true });
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_no: '',
+    tag: '',
+    sync_to_exotel: true,
+  });
 
   const [lists, setLists] = useState([]);
   const [showAssignModal, setShowAssignModal] = useState(null); // stores contact id to assign
@@ -86,7 +104,7 @@ export default function ContactsPage() {
     try {
       const res = await api.get('/lists');
       setLists(res.data.data);
-    } catch(err) {}
+    } catch (err) {}
   };
 
   const fetchTagOptions = useCallback(async () => {
@@ -123,7 +141,7 @@ export default function ContactsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.phone_no.startsWith('+')) {
       alert('Important: Phone number must include a country code starting with + (e.g., +91)');
       return;
@@ -131,7 +149,14 @@ export default function ContactsPage() {
 
     try {
       await api.post('/contacts', formData);
-      setFormData({ first_name: '', last_name: '', email: '', phone_no: '', tag: '', sync_to_exotel: true });
+      setFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone_no: '',
+        tag: '',
+        sync_to_exotel: true,
+      });
       setShowForm(false);
       await Promise.all([fetchContacts(), fetchTagOptions()]);
     } catch (err) {
@@ -195,7 +220,9 @@ export default function ContactsPage() {
       setImportResult(res.data.data);
       await Promise.all([fetchContacts(), fetchTagOptions()]);
     } catch (err) {
-      alert(err.response?.data?.message || err.response?.data?.error || err.message || 'Import failed');
+      alert(
+        err.response?.data?.message || err.response?.data?.error || err.message || 'Import failed'
+      );
     } finally {
       setImportBusy(false);
     }
@@ -204,10 +231,10 @@ export default function ContactsPage() {
   const handleAssignToList = async (contactId, listId) => {
     try {
       await api.post(`/lists/${listId}/contacts`, { contact_ids: [contactId] });
-      alert("Successfully added contact to list!");
+      alert('Successfully added contact to list!');
       setShowAssignModal(null);
     } catch (err) {
-      alert("Failed to assign to list");
+      alert('Failed to assign to list');
     }
   };
 
@@ -379,75 +406,138 @@ export default function ContactsPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-4">
         {importResult && (
           <div className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] text-sm space-y-2 shrink-0">
-          <p className="font-semibold text-[var(--text-primary)]">Import finished</p>
-          <p className="text-[var(--text-secondary)]">
-            Rows in file: {importResult.totalRows} · Valid: {importResult.validated} · After merge:{' '}
-            {importResult.mergedCount} · <span className="text-green-600 font-medium">New: {importResult.inserted}</span>{' '}
-            · <span className="text-amber-600 font-medium">Updated: {importResult.updated}</span>
-            {importResult.failedCount > 0 && (
-              <span className="text-red-500 font-medium"> · Failed: {importResult.failedCount}</span>
+            <p className="font-semibold text-[var(--text-primary)]">Import finished</p>
+            <p className="text-[var(--text-secondary)]">
+              Rows in file: {importResult.totalRows} · Valid: {importResult.validated} · After
+              merge: {importResult.mergedCount} ·{' '}
+              <span className="text-green-600 font-medium">New: {importResult.inserted}</span> ·{' '}
+              <span className="text-amber-600 font-medium">Updated: {importResult.updated}</span>
+              {importResult.failedCount > 0 && (
+                <span className="text-red-500 font-medium">
+                  {' '}
+                  · Failed: {importResult.failedCount}
+                </span>
+              )}
+            </p>
+            {importResult.failed?.length > 0 && (
+              <ul className="max-h-36 overflow-y-auto text-xs font-mono text-red-500/90 border border-[var(--border)] rounded-lg p-2 bg-[var(--bg-input)]">
+                {importResult.failed.map((f, i) => (
+                  <li key={`${f.row}-${i}`}>
+                    Row {f.row}: {f.message}
+                  </li>
+                ))}
+              </ul>
             )}
-          </p>
-          {importResult.failed?.length > 0 && (
-            <ul className="max-h-36 overflow-y-auto text-xs font-mono text-red-500/90 border border-[var(--border)] rounded-lg p-2 bg-[var(--bg-input)]">
-              {importResult.failed.map((f, i) => (
-                <li key={`${f.row}-${i}`}>
-                  Row {f.row}: {f.message}
-                </li>
-              ))}
-            </ul>
-          )}
-          <button
-            type="button"
-            onClick={() => setImportResult(null)}
-            className="text-xs text-indigo-500 hover:text-indigo-400 font-medium"
-          >
-            Dismiss
-          </button>
+            <button
+              type="button"
+              onClick={() => setImportResult(null)}
+              className="text-xs text-indigo-500 hover:text-indigo-400 font-medium"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
         {showForm && (
-        <form onSubmit={handleSubmit} className="shrink-0 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-lg animate-in slide-in-from-top-4 duration-300">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">First Name</label>
-              <input required type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="Jane" />
+          <form
+            onSubmit={handleSubmit}
+            className="shrink-0 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-lg animate-in slide-in-from-top-4 duration-300"
+          >
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  First Name
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                  placeholder="Jane"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                  placeholder="Doe"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Last Name</label>
-              <input type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="Doe" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                  placeholder="jane@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Phone Number
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={formData.phone_no}
+                  onChange={(e) => setFormData({ ...formData, phone_no: e.target.value })}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                  placeholder="+919876543210"
+                />
+                <p className="text-xs text-orange-500 mt-1.5 font-medium flex items-center gap-1">
+                  ⚠️ Must include country code (e.g. +91)
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Email</label>
-              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="jane@example.com" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Tag
+                </label>
+                <input
+                  type="text"
+                  value={formData.tag}
+                  onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                  placeholder="VIP, Prospect, etc."
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-6">
+                <input
+                  type="checkbox"
+                  checked={formData.sync_to_exotel}
+                  onChange={(e) => setFormData({ ...formData, sync_to_exotel: e.target.checked })}
+                  className="w-5 h-5 rounded border border-[var(--border)] text-indigo-600 focus:ring-indigo-500/30 accent-indigo-600 cursor-pointer"
+                  id="syncExotel"
+                />
+                <label
+                  htmlFor="syncExotel"
+                  className="text-sm font-medium text-[var(--text-primary)] cursor-pointer select-none"
+                >
+                  Sync to VoiceNest Addressbook
+                </label>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Phone Number</label>
-              <input required type="text" value={formData.phone_no} onChange={e => setFormData({...formData, phone_no: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="+919876543210" />
-              <p className="text-xs text-orange-500 mt-1.5 font-medium flex items-center gap-1">
-                ⚠️ Must include country code (e.g. +91)
-              </p>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                Save Contact
+              </button>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tag</label>
-              <input type="text" value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="VIP, Prospect, etc." />
-            </div>
-            <div className="flex items-center gap-2 mt-6">
-              <input type="checkbox" checked={formData.sync_to_exotel} onChange={e => setFormData({...formData, sync_to_exotel: e.target.checked})} className="w-5 h-5 rounded border border-[var(--border)] text-indigo-600 focus:ring-indigo-500/30 accent-indigo-600 cursor-pointer" id="syncExotel" />
-              <label htmlFor="syncExotel" className="text-sm font-medium text-[var(--text-primary)] cursor-pointer select-none">Sync to VoiceNest Addressbook</label>
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-              Save Contact
-            </button>
-          </div>
-        </form>
+          </form>
         )}
 
         <div className="min-h-0 flex-1 overflow-auto scroll-smooth">
@@ -475,13 +565,22 @@ export default function ContactsPage() {
             <div className="space-y-3 max-h-60 overflow-y-auto mb-6">
               {lists.length === 0 ? (
                 <p className="text-slate-400 text-sm">No lists created yet.</p>
-              ) : lists.map(l => (
-                <button key={l._id} onClick={() => handleAssignToList(showAssignModal, l._id)} className="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-colors font-medium text-slate-700">
-                  {l.name}
-                </button>
-              ))}
+              ) : (
+                lists.map((l) => (
+                  <button
+                    key={l._id}
+                    onClick={() => handleAssignToList(showAssignModal, l._id)}
+                    className="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-colors font-medium text-slate-700"
+                  >
+                    {l.name}
+                  </button>
+                ))
+              )}
             </div>
-            <button onClick={() => setShowAssignModal(null)} className="w-full py-2.5 rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            <button
+              onClick={() => setShowAssignModal(null)}
+              className="w-full py-2.5 rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+            >
               Cancel
             </button>
           </div>

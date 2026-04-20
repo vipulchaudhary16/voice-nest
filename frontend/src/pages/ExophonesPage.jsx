@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import api from "../services/api";
-import { Plus, Trash2, Phone } from "lucide-react";
-import DataTable from "../components/DataTable";
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { Plus, Trash2, Phone } from 'lucide-react';
+import DataTable from '../components/DataTable';
 
 export default function ExophonesPage() {
   const [exophones, setExophones] = useState([]);
@@ -36,17 +36,17 @@ export default function ExophonesPage() {
       setShowForm(false);
       fetchExophones();
     } catch {
-      alert("Error adding ExoPhone");
+      alert('Error adding ExoPhone');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Remove this ExoPhone?")) return;
+    if (!window.confirm('Remove this ExoPhone?')) return;
     try {
       await api.delete(`/exophones/${id}`);
       fetchExophones();
     } catch {
-      alert("Error deleting ExoPhone");
+      alert('Error deleting ExoPhone');
     }
   };
 
@@ -78,34 +78,68 @@ export default function ExophonesPage() {
       <div className="flex justify-between items-center bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">Voice Numbers</h2>
-          <p className="text-[var(--text-secondary)]">Manage your verified caller IDs for VoiceNest</p>
+          <p className="text-[var(--text-secondary)]">
+            Manage your verified caller IDs for VoiceNest
+          </p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
+        >
           <Plus className="w-5 h-5" /> {showForm ? 'Cancel' : 'Add Voice Number'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-xl animate-in slide-in-from-top-4">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-xl animate-in slide-in-from-top-4"
+        >
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Display Name</label>
-              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="Main Office" />
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                Display Name
+              </label>
+              <input
+                required
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                placeholder="Main Office"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Phone Number (+E.164)</label>
-              <input required type="text" value={formData.phone_no} onChange={e => setFormData({...formData, phone_no: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500" placeholder="+9180XXXXXXXX" />
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                Phone Number (+E.164)
+              </label>
+              <input
+                required
+                type="text"
+                value={formData.phone_no}
+                onChange={(e) => setFormData({ ...formData, phone_no: e.target.value })}
+                className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                placeholder="+9180XXXXXXXX"
+              />
             </div>
           </div>
           <div className="flex justify-end">
-            <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-md">
+            <button
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-md"
+            >
               Save ExoPhone
             </button>
           </div>
         </form>
       )}
 
-      <DataTable columns={columns} data={exophones} loading={loading} emptyMessage="No voice numbers found. Add your verified caller IDs to start campaigns." />
+      <DataTable
+        columns={columns}
+        data={exophones}
+        loading={loading}
+        emptyMessage="No voice numbers found. Add your verified caller IDs to start campaigns."
+      />
     </div>
   );
 }

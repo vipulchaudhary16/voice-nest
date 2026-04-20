@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @theme {
@@ -29,6 +29,9 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Outfit', -apple-system, sans-serif;
+  font-family:
+    'Outfit',
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }

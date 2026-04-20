@@ -30,13 +30,26 @@ function VoiceNestLogo({ className = 'w-8 h-8' }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="voicenestGradient" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="voicenestGradient"
+          x1="10"
+          y1="10"
+          x2="54"
+          y2="54"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop stopColor="#4F46E5" />
           <stop offset="1" stopColor="#06B6D4" />
         </linearGradient>
       </defs>
       <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#voicenestGradient)" />
-      <path d="M17 20L25 44L32 28L39 44L47 20" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M17 20L25 44L32 28L39 44L47 20"
+        stroke="white"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -105,7 +118,9 @@ export default function DashboardPage() {
           <div
             className={`flex items-center gap-3 ${sidebarCollapsed ? 'flex-col-reverse gap-2' : 'justify-between'}`}
           >
-            <div className={`flex items-center gap-3 min-w-0 ${sidebarCollapsed ? 'flex-col' : 'flex-1'}`}>
+            <div
+              className={`flex items-center gap-3 min-w-0 ${sidebarCollapsed ? 'flex-col' : 'flex-1'}`}
+            >
               <div className="w-8 h-8 shrink-0 rounded-lg shadow-lg shadow-indigo-500/20 overflow-hidden">
                 <VoiceNestLogo className="w-8 h-8" />
               </div>
@@ -155,7 +170,7 @@ export default function DashboardPage() {
                 <item.icon className="w-5 h-5 shrink-0" />
                 <span className={sidebarCollapsed ? 'sr-only' : ''}>{item.label}</span>
               </span>
-            ),
+            )
           )}
         </nav>
 
@@ -203,7 +218,7 @@ export default function DashboardPage() {
                 <item.icon className="w-5 h-5" />
                 {item.label}
               </span>
-            ),
+            )
           )}
         </div>
 

@@ -1,29 +1,29 @@
-import { useState, useEffect, useMemo } from "react";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import api from "../services/api";
-import { Plus, Trash2, Users } from "lucide-react";
-import DataTable from "../components/DataTable";
+import { useState, useEffect, useMemo } from 'react';
+import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import api from '../services/api';
+import { Plus, Trash2, Users } from 'lucide-react';
+import DataTable from '../components/DataTable';
 
 function ListMembersTable({ list, onRemoveContact }) {
   const columns = useMemo(
     () => [
       {
-        id: "name",
-        header: "Name",
-        accessorFn: (c) => `${c.first_name} ${c.last_name || ""}`.trim(),
-        meta: { cellClassName: "p-4 font-semibold text-slate-700" },
+        id: 'name',
+        header: 'Name',
+        accessorFn: (c) => `${c.first_name} ${c.last_name || ''}`.trim(),
+        meta: { cellClassName: 'p-4 font-semibold text-slate-700' },
       },
       {
-        accessorKey: "phone_no",
-        header: "Phone",
-        meta: { cellClassName: "p-4 font-mono text-sm text-slate-500" },
+        accessorKey: 'phone_no',
+        header: 'Phone',
+        meta: { cellClassName: 'p-4 font-mono text-sm text-slate-500' },
       },
       {
-        id: "actions",
-        header: "",
+        id: 'actions',
+        header: '',
         meta: {
-          headerClassName: "sr-only w-0 p-0",
-          cellClassName: "p-4 text-right",
+          headerClassName: 'sr-only w-0 p-0',
+          cellClassName: 'p-4 text-right',
         },
         cell: ({ row }) => (
           <button
@@ -36,7 +36,7 @@ function ListMembersTable({ list, onRemoveContact }) {
         ),
       },
     ],
-    [list._id, onRemoveContact],
+    [list._id, onRemoveContact]
   );
 
   const table = useReactTable({
@@ -56,7 +56,7 @@ function ListMembersTable({ list, onRemoveContact }) {
               return (
                 <th
                   key={h.id}
-                  className={`p-4 text-xs font-semibold uppercase tracking-wide text-purple-600/80 ${meta.headerClassName ?? ""}`}
+                  className={`p-4 text-xs font-semibold uppercase tracking-wide text-purple-600/80 ${meta.headerClassName ?? ''}`}
                 >
                   {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
@@ -71,7 +71,7 @@ function ListMembersTable({ list, onRemoveContact }) {
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta ?? {};
               return (
-                <td key={cell.id} className={meta.cellClassName ?? "p-4"}>
+                <td key={cell.id} className={meta.cellClassName ?? 'p-4'}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               );
@@ -88,8 +88,13 @@ export default function ListsPage() {
   const [allContacts, setAllContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  
-  const [formData, setFormData] = useState({ name: '', tag: '', sync_to_exotel: true, selected_contacts: [] });
+
+  const [formData, setFormData] = useState({
+    name: '',
+    tag: '',
+    sync_to_exotel: true,
+    selected_contacts: [],
+  });
 
   const [activeListId, setActiveListId] = useState(null); // For viewing contacts inside a list
 
@@ -99,10 +104,7 @@ export default function ListsPage() {
 
   const fetchData = async () => {
     try {
-      const [listRes, contactRes] = await Promise.all([
-        api.get('/lists'),
-        api.get('/contacts')
-      ]);
+      const [listRes, contactRes] = await Promise.all([api.get('/lists'), api.get('/contacts')]);
       setLists(listRes.data.data);
       setAllContacts(contactRes.data.data);
     } catch (err) {
@@ -118,7 +120,7 @@ export default function ListsPage() {
       const res = await api.post('/lists', {
         name: formData.name,
         tag: formData.tag,
-        sync_to_exotel: formData.sync_to_exotel
+        sync_to_exotel: formData.sync_to_exotel,
       });
       const listId = res.data.data._id;
 
@@ -130,36 +132,38 @@ export default function ListsPage() {
       setShowForm(false);
       fetchData();
     } catch (err) {
-      alert("Error creating contact group");
+      alert('Error creating contact group');
     }
   };
 
   const handleDeleteList = async (id) => {
-    if (!window.confirm("Permanently delete this group?")) return;
+    if (!window.confirm('Permanently delete this group?')) return;
     try {
       await api.delete(`/lists/${id}`);
       fetchData();
     } catch (err) {
-      alert("Error deleting group");
+      alert('Error deleting group');
     }
   };
 
   const handleRemoveContact = async (listId, contactId) => {
-    if (!window.confirm("Remove this contact from the group?")) return;
+    if (!window.confirm('Remove this contact from the group?')) return;
     try {
       await api.delete(`/lists/${listId}/contacts/${contactId}`);
       fetchData();
     } catch (err) {
-      alert("Error removing contact");
+      alert('Error removing contact');
     }
   };
 
   const handleContactToggle = (contactId) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const isSelected = prev.selected_contacts.includes(contactId);
       return {
         ...prev,
-        selected_contacts: isSelected ? prev.selected_contacts.filter(id => id !== contactId) : [...prev.selected_contacts, contactId]
+        selected_contacts: isSelected
+          ? prev.selected_contacts.filter((id) => id !== contactId)
+          : [...prev.selected_contacts, contactId],
       };
     });
   };
@@ -184,7 +188,9 @@ export default function ListsPage() {
       cell: ({ row }) => (
         <button
           type="button"
-          onClick={() => setActiveListId(activeListId === row.original._id ? null : row.original._id)}
+          onClick={() =>
+            setActiveListId(activeListId === row.original._id ? null : row.original._id)
+          }
           className="flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition-colors"
         >
           <Users className="w-4 h-4" /> {row.original.contacts?.length || 0}
@@ -220,45 +226,94 @@ export default function ListsPage() {
           <h2 className="text-2xl font-bold text-[var(--text-primary)]">Contact Groups</h2>
           <p className="text-[var(--text-secondary)]">Manage your lists for campaigns</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-500/20"
+        >
           <Plus className="w-5 h-5" /> {showForm ? 'Cancel' : 'Create Group'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreateList} className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-xl animate-in slide-in-from-top-4 duration-300">
+        <form
+          onSubmit={handleCreateList}
+          className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-xl animate-in slide-in-from-top-4 duration-300"
+        >
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">Group Name *</label>
-              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-purple-500 font-medium" placeholder="High Value Prospects" />
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                Group Name *
+              </label>
+              <input
+                required
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-purple-500 font-medium"
+                placeholder="High Value Prospects"
+              />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">Group Tag</label>
-              <input type="text" value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-purple-500 font-medium" placeholder="PROSPECT" />
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                Group Tag
+              </label>
+              <input
+                type="text"
+                value={formData.tag}
+                onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-purple-500 font-medium"
+                placeholder="PROSPECT"
+              />
             </div>
           </div>
 
           <div className="mb-6 bg-[var(--bg-input)] p-4 rounded-xl border border-[var(--border)]">
-            <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-3">Add Initial Contacts ({formData.selected_contacts.length} selected)</label>
+            <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-3">
+              Add Initial Contacts ({formData.selected_contacts.length} selected)
+            </label>
             <div className="max-h-48 overflow-y-auto pr-2 space-y-2">
-              {allContacts.length === 0 ? <p className="text-[var(--text-muted)] text-sm">No contacts available.</p> : allContacts.map(c => (
-                <label key={c._id} className="flex items-center gap-3 p-3 bg-[var(--bg-card)] rounded-lg hover:border-purple-500 border border-[var(--border)] cursor-pointer transition-colors block w-full">
-                  <input type="checkbox" checked={formData.selected_contacts.includes(c._id)} onChange={() => handleContactToggle(c._id)} className="w-5 h-5 rounded border-[var(--border)] text-purple-600 focus:ring-purple-500/30 accent-purple-600 cursor-pointer" />
-                  <div className="flex-1">
-                    <p className="font-bold text-[var(--text-primary)]">{c.first_name} {c.last_name || ''}</p>
-                    <p className="text-xs text-[var(--text-secondary)] font-mono">{c.phone_no}</p>
-                  </div>
-                </label>
-              ))}
+              {allContacts.length === 0 ? (
+                <p className="text-[var(--text-muted)] text-sm">No contacts available.</p>
+              ) : (
+                allContacts.map((c) => (
+                  <label
+                    key={c._id}
+                    className="flex items-center gap-3 p-3 bg-[var(--bg-card)] rounded-lg hover:border-purple-500 border border-[var(--border)] cursor-pointer transition-colors block w-full"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.selected_contacts.includes(c._id)}
+                      onChange={() => handleContactToggle(c._id)}
+                      className="w-5 h-5 rounded border-[var(--border)] text-purple-600 focus:ring-purple-500/30 accent-purple-600 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <p className="font-bold text-[var(--text-primary)]">
+                        {c.first_name} {c.last_name || ''}
+                      </p>
+                      <p className="text-xs text-[var(--text-secondary)] font-mono">{c.phone_no}</p>
+                    </div>
+                  </label>
+                ))
+              )}
             </div>
           </div>
 
           <div className="flex justify-between items-center mt-6">
             <label className="flex items-center gap-2 cursor-pointer group">
-              <input type="checkbox" checked={formData.sync_to_exotel} onChange={e => setFormData({...formData, sync_to_exotel: e.target.checked})} className="w-5 h-5 rounded border border-[var(--border)] text-purple-600 focus:ring-purple-500/30 accent-purple-600 cursor-pointer" />
-              <span className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-purple-600 transition-colors">Sync this group to VoiceNest</span>
+              <input
+                type="checkbox"
+                checked={formData.sync_to_exotel}
+                onChange={(e) => setFormData({ ...formData, sync_to_exotel: e.target.checked })}
+                className="w-5 h-5 rounded border border-[var(--border)] text-purple-600 focus:ring-purple-500/30 accent-purple-600 cursor-pointer"
+              />
+              <span className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-purple-600 transition-colors">
+                Sync this group to VoiceNest
+              </span>
             </label>
-            <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md">
+            <button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md"
+            >
               Save Group
             </button>
           </div>
@@ -269,14 +324,21 @@ export default function ListsPage() {
         <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 shadow-sm mb-6 animate-in fade-in zoom-in-95 duration-200">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-purple-900 text-lg">Group Members</h3>
-            <button onClick={() => setActiveListId(null)} className="text-sm font-semibold text-purple-600 hover:text-purple-800">Close</button>
+            <button
+              onClick={() => setActiveListId(null)}
+              className="text-sm font-semibold text-purple-600 hover:text-purple-800"
+            >
+              Close
+            </button>
           </div>
           <div className="bg-white rounded-xl overflow-hidden border border-purple-100">
             {(() => {
               const list = lists.find((l) => l._id === activeListId);
               if (!list || !list.contacts || list.contacts.length === 0) {
                 return (
-                  <p className="p-6 text-center text-purple-400 font-medium">No contacts in this group.</p>
+                  <p className="p-6 text-center text-purple-400 font-medium">
+                    No contacts in this group.
+                  </p>
                 );
               }
               return <ListMembersTable list={list} onRemoveContact={handleRemoveContact} />;
@@ -285,7 +347,12 @@ export default function ListsPage() {
         </div>
       )}
 
-      <DataTable columns={columns} data={lists} loading={loading} emptyMessage="No contact groups found. Create one to organize campaigns." />
+      <DataTable
+        columns={columns}
+        data={lists}
+        loading={loading}
+        emptyMessage="No contact groups found. Create one to organize campaigns."
+      />
     </div>
   );
 }

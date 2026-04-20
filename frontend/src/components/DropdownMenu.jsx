@@ -34,7 +34,7 @@ export default function DropdownMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState(
-    /** @type {{ top: number, left?: number, right?: number } | null} */ (null),
+    /** @type {{ top: number, left?: number, right?: number } | null} */ (null)
   );
   const btnRef = useRef(null);
   const menuRef = useRef(null);
@@ -133,10 +133,10 @@ export default function DropdownMenu({
               {item.icon && <item.icon className="h-4 w-4 shrink-0 opacity-70" aria-hidden />}
               <span className="min-w-0 flex-1">{item.label}</span>
             </button>
-          ),
+          )
         )}
       </div>,
-      document.body,
+      document.body
     );
 
   return (
@@ -167,7 +167,10 @@ export default function DropdownMenu({
         >
           {Icon && <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />}
           <span>{label}</span>
-          <ChevronDown className={`h-4 w-4 shrink-0 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
+            aria-hidden
+          />
         </button>
       )}
       {menuPanel}

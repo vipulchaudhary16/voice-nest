@@ -7,8 +7,7 @@ export function formatCallStatusLabel(status) {
 }
 
 const STATUS_TOOLTIPS = {
-  did_not_respond:
-    'No keypad digit was selected. The callee did not press any menu option.',
+  did_not_respond: 'No keypad digit was selected. The callee did not press any menu option.',
   completed: 'The callee selected a valid menu option (digit pressed).',
   failed: 'The call ended in a failed state.',
   initiated: 'The call was initiated; flow may still be in progress.',

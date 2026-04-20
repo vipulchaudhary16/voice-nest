@@ -133,7 +133,9 @@ export default function DataTable({
   if (!data || data.length === 0) {
     return (
       <TableShell className="p-12 flex justify-center flex-col items-center gap-2">
-        <div className="text-[var(--text-muted)] font-medium text-lg">{emptyMessage || 'No records found.'}</div>
+        <div className="text-[var(--text-muted)] font-medium text-lg">
+          {emptyMessage || 'No records found.'}
+        </div>
       </TableShell>
     );
   }
@@ -152,7 +154,9 @@ export default function DataTable({
                     colSpan={header.colSpan}
                     className={`${thBaseClass} ${meta.headerClassName ?? ''}`}
                   >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 );
               })}

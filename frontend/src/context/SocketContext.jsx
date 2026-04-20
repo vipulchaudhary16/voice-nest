@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { io } from "socket.io-client";
-import { useAuth } from "./AuthContext";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
 
@@ -12,12 +12,9 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const newSocket = io(
-        import.meta.env.VITE_API_URL || "http://localhost:8080",
-        {
-          transports: ["websocket"],
-        },
-      );
+      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:8080', {
+        transports: ['websocket'],
+      });
       setSocket(newSocket);
 
       return () => newSocket.close();
@@ -29,7 +26,5 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user]);
 
-  return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
 };

@@ -79,11 +79,17 @@ function CallsDayTable({ calls }) {
                 <PhoneOutgoing className="w-4 h-4" />
               </div>
               <div>
-                <p className="font-semibold text-[var(--text-primary)] tracking-wide">{call.to_name || call.to}</p>
+                <p className="font-semibold text-[var(--text-primary)] tracking-wide">
+                  {call.to_name || call.to}
+                </p>
                 {call.to_name && (
-                  <p className="text-xs text-[var(--text-secondary)] font-mono opacity-70">{call.to}</p>
+                  <p className="text-xs text-[var(--text-secondary)] font-mono opacity-70">
+                    {call.to}
+                  </p>
                 )}
-                <p className="text-xs text-[var(--text-secondary)] font-mono opacity-60">from: {call.from}</p>
+                <p className="text-xs text-[var(--text-secondary)] font-mono opacity-60">
+                  from: {call.from}
+                </p>
               </div>
             </div>
           );
@@ -98,7 +104,9 @@ function CallsDayTable({ calls }) {
             <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Clock className="w-3.5 h-3.5" />
               {new Date(call.time).toLocaleTimeString(undefined, time12hOptions)}{' '}
-              <span className="text-xs opacity-50 ml-1">{new Date(call.time).toLocaleDateString()}</span>
+              <span className="text-xs opacity-50 ml-1">
+                {new Date(call.time).toLocaleDateString()}
+              </span>
             </div>
           );
         },
@@ -133,7 +141,7 @@ function CallsDayTable({ calls }) {
         },
       },
     ],
-    [],
+    []
   );
 
   const table = useReactTable({
@@ -283,7 +291,9 @@ export default function CallsPage() {
                 </span>
               )}
             </h2>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">Real-time Call Monitoring Stream</p>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              Real-time Call Monitoring Stream
+            </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3 sm:w-auto shrink-0">
             <label className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-secondary)] sm:shrink-0">
@@ -351,7 +361,10 @@ export default function CallsPage() {
                   <Calendar className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
                   <span className="flex-1 min-w-0">
                     {group.label}
-                    <span className="text-xs font-normal text-[var(--text-muted)]"> ({group.items.length})</span>
+                    <span className="text-xs font-normal text-[var(--text-muted)]">
+                      {' '}
+                      ({group.items.length})
+                    </span>
                   </span>
                 </button>
                 {open && <CallsDayTable calls={group.items} />}

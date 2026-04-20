@@ -16,7 +16,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 const IndexRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  return user.role === 'super_admin' ? <Navigate to="/admin/tenants" /> : <Navigate to="/dashboard/contacts" />;
+  return user.role === 'super_admin' ? (
+    <Navigate to="/admin/tenants" />
+  ) : (
+    <Navigate to="/dashboard/contacts" />
+  );
 };
 
 function App() {
