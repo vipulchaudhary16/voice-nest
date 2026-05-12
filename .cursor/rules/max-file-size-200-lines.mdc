@@ -1,0 +1,18 @@
+---
+description: Keep source files small and split by responsibility
+alwaysApply: true
+---
+
+# Max 200 Lines Per File
+
+- Never create or leave source files above 200 lines.
+- If a file grows close to 200 lines, split it immediately.
+- Prefer splitting by responsibility:
+  - UI widgets/layout
+  - state/actions
+  - API/data mapping
+  - helpers/models/constants
+- When splitting Dart/Flutter pages, use multiple files in the same feature folder (including `part` files or dedicated widget/helper files).
+- Keep behavior unchanged during splits; refactor structure, not functionality.
+- After any split, run analysis/tests and fix imports/references.
+

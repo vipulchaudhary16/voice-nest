@@ -36,6 +36,8 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    const tenant = user.tenant_id ? await Tenant.findById(user.tenant_id).lean() : null;
+
     res.status(200).json({
       success: true,
       data: {
@@ -44,6 +46,7 @@ exports.login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         tenant_id: user.tenant_id,
+        tenant_name: tenant?.name || null,
         token: generateToken(user._id),
       },
     });

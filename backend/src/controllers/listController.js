@@ -81,6 +81,13 @@ exports.addContactsToList = async (req, res, next) => {
       _id: { $in: contact_ids },
       tenant_id: req.user.tenant_id,
     });
+    const unsyncedContacts = contacts.filter((contact) => !contact.exotel_sid);
+    if (unsyncedContacts.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Contact must be synced to Exotel before adding to a list',
+      });
+    }
     const exotelSids = contacts.map((c) => c.exotel_sid).filter((sid) => sid);
 
     if (list.exotel_sid && exotelSids.length > 0) {
@@ -113,13 +120,11 @@ exports.removeContactFromList = async (req, res, next) => {
     if (!list || !contact)
       return res.status(404).json({ success: false, message: 'List or Contact not found' });
 
-    if (list.exotel_sid && contact.exotel_sid) {
+    const listSid = String(list.exotel_sid || '').trim();
+    const contactSid = String(contact.exotel_sid || '').trim();
+    if (listSid && contactSid) {
       const tenant = await Tenant.findById(req.user.tenant_id);
-      try {
-        await exotelService.removeContactFromList(tenant, list.exotel_sid, contact.exotel_sid);
-      } catch (err) {
-        console.error('Failed to remove contact from Exotel:', err.message);
-      }
+      await exotelService.removeContactFromList(tenant, listSid, contactSid);
     }
 
     list.contacts = list.contacts.filter((cId) => cId.toString() !== contact._id.toString());

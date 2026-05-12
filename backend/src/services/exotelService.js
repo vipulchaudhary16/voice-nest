@@ -1,3 +1,7 @@
+function buildShareableCurlCommand(url, authHeader) {
+  return `curl --location --request GET "${url}" --header "Authorization: ${authHeader}"`;
+}
+
 exports.syncContacts = async (tenant, contactsParamsArray) => {
   if (
     !tenant.ivr_data ||
@@ -42,6 +46,69 @@ exports.syncContacts = async (tenant, contactsParamsArray) => {
 
   const data = await response.json();
   return data;
+};
+
+exports.updateContact = async (tenant, contactSid, contact) => {
+  if (
+    !tenant.ivr_data ||
+    !tenant.ivr_data.api_key ||
+    !tenant.ivr_data.api_token ||
+    !tenant.ivr_data.account_sid ||
+    !tenant.ivr_data.subdomain
+  ) {
+    throw new Error(
+      'Tenant IVR data is incomplete for Exotel sync. Please configure it in the Admin Panel.'
+    );
+  }
+  if (!contactSid) {
+    throw new Error('Exotel contact SID is required for update');
+  }
+
+  const { api_key, api_token, account_sid, subdomain } = tenant.ivr_data;
+  const cleanSubdomain = subdomain.startsWith('@') ? subdomain.substring(1) : subdomain;
+  const url = `https://${cleanSubdomain}/v2/accounts/${account_sid}/contacts/${contactSid}`;
+  const authHeader = 'Basic ' + Buffer.from(`${api_key}:${api_token}`).toString('base64');
+
+  const payload = {
+    number: contact.phone_no,
+    first_name: contact.first_name,
+    last_name: contact.last_name || undefined,
+    email: contact.email || undefined,
+    tag: contact.tag || undefined,
+  };
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawBody = await response.text();
+  let data = null;
+  try {
+    data = rawBody ? JSON.parse(rawBody) : null;
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      data?.response?.[0]?.error_data?.message ||
+      data?.response?.[0]?.error_data?.description ||
+      data?.message ||
+      (rawBody ? `Exotel returned non-JSON error: ${rawBody.slice(0, 200)}` : null) ||
+      'Failed to update contact on Exotel';
+    throw new Error(message);
+  }
+
+  return {
+    ok: true,
+    status: response.status,
+    data,
+  };
 };
 
 exports.createList = async (tenant, name, tag) => {
@@ -132,25 +199,6 @@ exports.deleteCampaign = async (tenant, campaignId) => {
   });
 };
 
-exports.updateCampaign = async (tenant, campaignId, payload) => {
-  if (!tenant.ivr_data || !tenant.ivr_data.account_sid) throw new Error('Incomplete IVR Data');
-  const { api_key, api_token, account_sid, subdomain } = tenant.ivr_data;
-  const cleanSubdomain = subdomain.startsWith('@') ? subdomain.substring(1) : subdomain;
-  const url = `https://${cleanSubdomain}/v2/accounts/${account_sid}/campaigns/${campaignId}`;
-  const authHeader = 'Basic ' + Buffer.from(`${api_key}:${api_token}`).toString('base64');
-
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: authHeader },
-    body: JSON.stringify({ campaigns: [payload] }),
-  });
-  const data = await response.json();
-  if (data.response && data.response[0] && data.response[0].status === 'failed') {
-    throw new Error(data.response[0].error_data?.message || 'Update failed');
-  }
-  return data;
-};
-
 exports.getCampaignCallDetails = async (tenant, campaignId, query = {}) => {
   if (!tenant.ivr_data || !tenant.ivr_data.account_sid) {
     throw new Error('Incomplete IVR Data');
@@ -169,11 +217,11 @@ exports.getCampaignCallDetails = async (tenant, campaignId, query = {}) => {
 
   const queryString = params.toString();
   const endpointSuffix = queryString ? `?${queryString}` : '';
-  const url = `https://${cleanSubdomain}/v2/accounts/${account_sid}/campaign/${campaignId}/call-details${endpointSuffix}`;
+  const url = `https://${cleanSubdomain}/v2/accounts/${account_sid}/campaigns/${campaignId}/call-details${endpointSuffix}`;
+  const shareableCurl = buildShareableCurlCommand(url, authHeader);
+
   console.log('[EXOTEL_CALL_DETAILS] Request URL:', url);
-  console.log('[EXOTEL_CALL_DETAILS] API Key:', api_key);
-  console.log('[EXOTEL_CALL_DETAILS] API Token:', api_token);
-  console.log('[EXOTEL_CALL_DETAILS] Header Authorization:', authHeader);
+  console.log('[EXOTEL_CALL_DETAILS] CURL:', shareableCurl);
 
   const response = await fetch(url, {
     method: 'GET',

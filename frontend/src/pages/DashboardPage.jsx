@@ -19,6 +19,7 @@ import CallsPage from './CallsPage';
 import CampaignsPage from './CampaignsPage';
 import CampaignCallDetailsPage from './CampaignCallDetailsPage';
 import ExophonesPage from './ExophonesPage';
+import ListsPage from './ListsPage';
 
 function VoiceNestLogo({ className = 'w-8 h-8' }) {
   return (
@@ -80,7 +81,7 @@ export default function DashboardPage() {
   const navItems = [
     { to: '/dashboard/home', label: 'Dashboard', icon: LayoutDashboard, end: true, enabled: false },
     { to: '/dashboard/contacts', label: 'Contacts', icon: Users, end: true, enabled: true },
-    { to: '/dashboard/lists', label: 'Groups', icon: List, end: false, enabled: false },
+    { to: '/dashboard/lists', label: 'Groups', icon: List, end: false, enabled: true },
     { to: '/dashboard/exophones', label: 'ExoPhones', icon: Phone, end: false, enabled: true },
     { to: '/dashboard/campaigns', label: 'Campaigns', icon: Megaphone, end: false, enabled: true },
     { to: '/dashboard/calls', label: 'Calls', icon: PhoneCall, end: true, enabled: true },
@@ -228,7 +229,7 @@ export default function DashboardPage() {
               <Route index element={<Navigate to="contacts" replace />} />
               <Route path="home" element={<RedirectToContacts />} />
               <Route path="contacts" element={<ContactsPage />} />
-              <Route path="lists" element={<RedirectToContacts />} />
+              <Route path="lists" element={<ListsPage />} />
               <Route path="exophones" element={<ExophonesPage />} />
               <Route path="campaigns" element={<CampaignsPage />} />
               <Route path="campaigns/:id/call-details" element={<CampaignCallDetailsPage />} />

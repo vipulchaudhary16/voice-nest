@@ -1,5 +1,6 @@
 const Contact = require('../../models/contactModel');
 const { parseCsvObjects } = require('../csvUtils');
+const { syncSingleContact } = require('../../services/contactSyncService');
 
 const TYPE = 'contacts';
 
@@ -21,8 +22,8 @@ const HEADER_ALIASES = {
 const REQUIRED = ['first_name', 'phone_no'];
 
 /**
- * E.164-style: ensure a leading +. Excel often drops leading + in cells; users can paste digits only.
- * Strips spaces, parentheses, hyphens from the national part; strips a leading 00 before adding +.
+ * Normalize contact phone for import without forcing country prefix.
+ * Keeps optional leading + if provided, strips formatting symbols.
  * @param {unknown} value
  */
 function normalizePhoneNo(value) {
@@ -32,15 +33,12 @@ function normalizePhoneNo(value) {
     const rest = raw.slice(1).replace(/[\s().-]/g, '');
     return rest ? `+${rest}` : '+';
   }
-  let digits = raw.replace(/\D/g, '');
-  if (!digits) return raw;
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  return `+${digits}`;
+  return raw.replace(/\D/g, '');
 }
 
 function buildTemplateCsv() {
   const header = 'first_name,last_name,email,phone_no,tag';
-  // phone_no may omit + (e.g. Excel); a leading + is applied automatically on import.
+  // phone_no can be provided with or without +.
   const example = 'Jane,Doe,jane@example.com,919876543210,prospect';
   return `${header}\r\n${example}\r\n`;
 }
@@ -72,10 +70,7 @@ function validateRow(normalized) {
   if (!normalized.phone_no) return 'phone_no is required';
   const phoneDigits = normalized.phone_no.replace(/\D/g, '');
   if (phoneDigits.length < 8) {
-    return 'phone_no must include country code and number (at least 8 digits; leading + is added automatically if missing)';
-  }
-  if (!normalized.phone_no.startsWith('+')) {
-    return 'phone_no must include country code starting with +';
+    return 'phone_no must contain at least 8 digits';
   }
   if (normalized.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
     return 'email format is invalid';
@@ -85,12 +80,25 @@ function validateRow(normalized) {
 
 /**
  * @param {import('mongoose').Types.ObjectId} tenant_id
+ * @param {{ sync_to_exotel?: boolean }} context
  */
-async function persistOne(normalized, tenant_id) {
+async function persistOne(normalized, tenant_id, context = {}) {
   const existing = await Contact.findOne({
     tenant_id,
     phone_no: normalized.phone_no,
-  }).lean();
+  });
+
+  let finalSid = existing?.exotel_sid || null;
+  if (context.sync_to_exotel) {
+    finalSid =
+      (await syncSingleContact(tenant_id, {
+        phone_no: normalized.phone_no,
+        first_name: normalized.first_name,
+        last_name: normalized.last_name,
+        email: normalized.email,
+        tag: normalized.tag,
+      })) || finalSid;
+  }
 
   const payload = {
     first_name: normalized.first_name,
@@ -98,6 +106,7 @@ async function persistOne(normalized, tenant_id) {
     email: normalized.email || undefined,
     phone_no: normalized.phone_no,
     tag: normalized.tag || undefined,
+    exotel_sid: finalSid || undefined,
     tenant_id,
   };
 
@@ -110,6 +119,7 @@ async function persistOne(normalized, tenant_id) {
           last_name: normalized.last_name || '',
           email: normalized.email || '',
           tag: normalized.tag || '',
+          exotel_sid: finalSid || '',
         },
       }
     );

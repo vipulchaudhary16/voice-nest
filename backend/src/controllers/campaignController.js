@@ -35,6 +35,7 @@ exports.createCampaign = async (req, res, next) => {
     const {
       name,
       lists,
+      from,
       caller_id,
       campaign_type,
       flow_type,
@@ -43,6 +44,15 @@ exports.createCampaign = async (req, res, next) => {
       retries,
       schedule,
       sync_to_exotel,
+      type,
+      call_duplicate_numbers,
+      status_callback,
+      call_status_callback,
+      call_schedule_callback,
+      mode,
+      throttle,
+      custom_field,
+      repeat_menu_attempts,
     } = req.body;
 
     const caller = await Exophone.findById(caller_id);
@@ -59,16 +69,25 @@ exports.createCampaign = async (req, res, next) => {
 
     let final_sid = null;
 
+    const fromTrimmed = typeof from === 'string' ? from.trim() : '';
+
     if (sync_to_exotel) {
-      const listDocs = await List.find({ _id: { $in: lists } });
+      const listIds = Array.isArray(lists) ? lists : [];
+      const listDocs = listIds.length ? await List.find({ _id: { $in: listIds } }) : [];
       const exotelLists = listDocs.map((l) => l.exotel_sid).filter((sid) => sid);
+
+      if (!exotelLists.length && !fromTrimmed) {
+        return res.status(400).json({
+          success: false,
+          message: 'Provide at least one synced list or phone numbers in `from` for Exotel sync',
+        });
+      }
 
       // Exotel rejects flow_type "ivr" together with url (error 1002). Greeting uses
       // flow_type + read_via_text; ExoML flows use url only (no flow_type in request).
       const payload = {
         name,
         caller_id: caller.phone_no,
-        lists: exotelLists,
         campaign_type: campaign_type || 'static',
         retries,
         schedule:
@@ -80,12 +99,33 @@ exports.createCampaign = async (req, res, next) => {
             : null,
       };
 
+      if (exotelLists.length) payload.lists = exotelLists;
+      if (fromTrimmed) payload.from = fromTrimmed;
+      if (type === 'promo' || type === 'trans') payload.type = type;
+      if (typeof call_duplicate_numbers === 'boolean') {
+        payload.call_duplicate_numbers = call_duplicate_numbers;
+      }
+      if (status_callback) payload.status_callback = status_callback;
+      if (call_status_callback) payload.call_status_callback = call_status_callback;
+      if (call_schedule_callback) payload.call_schedule_callback = call_schedule_callback;
+      if (mode === 'custom' || mode === 'auto') payload.mode = mode;
+      if (mode === 'custom' && throttle != null && throttle !== '') {
+        payload.throttle = Number(throttle);
+      }
+      if (custom_field) payload.custom_field = String(custom_field);
+
+      // Exotel: greeting vs ExoML URL are mutually exclusive. Do not send read_via_text
+      // on URL campaigns (null can be treated as greeting). repeat_menu_attempts is only
+      // valid for IVR — error 1002 if sent for greeting.
       if (flow_type === 'greeting') {
         payload.flow_type = 'greeting';
         payload.read_via_text = read_via_text ?? null;
       } else {
         payload.url = exotelUrl;
-        payload.read_via_text = null;
+        const r = repeat_menu_attempts;
+        if (r != null && r !== '' && Number(r) > 0) {
+          payload.repeat_menu_attempts = Number(r);
+        }
       }
 
       console.log('payload', payload);
@@ -107,7 +147,7 @@ exports.createCampaign = async (req, res, next) => {
 
     const campaign = await Campaign.create({
       name,
-      lists,
+      lists: Array.isArray(lists) ? lists : [],
       caller_id,
       campaign_type,
       flow_type,
@@ -115,6 +155,20 @@ exports.createCampaign = async (req, res, next) => {
       url: exotelUrl || url,
       retries,
       schedule,
+      from_numbers: fromTrimmed || undefined,
+      type: type === 'promo' ? 'promo' : 'trans',
+      call_duplicate_numbers:
+        typeof call_duplicate_numbers === 'boolean' ? call_duplicate_numbers : false,
+      status_callback: status_callback || undefined,
+      call_status_callback: call_status_callback || undefined,
+      call_schedule_callback: call_schedule_callback || undefined,
+      mode: mode === 'custom' ? 'custom' : 'auto',
+      throttle: mode === 'custom' && throttle != null ? Number(throttle) : undefined,
+      custom_field: custom_field || undefined,
+      repeat_menu_attempts:
+        repeat_menu_attempts != null && repeat_menu_attempts !== ''
+          ? Number(repeat_menu_attempts)
+          : 0,
       exotel_sid: final_sid,
       tenant_id: req.user.tenant_id,
     });
@@ -145,44 +199,6 @@ exports.deleteCampaign = async (req, res, next) => {
 
     await campaign.deleteOne();
     res.status(200).json({ success: true, data: {} });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.updateCampaign = async (req, res, next) => {
-  try {
-    const { action } = req.body;
-    const campaign = await Campaign.findOne({
-      _id: req.params.id,
-      tenant_id: req.user.tenant_id,
-    });
-    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-
-    if (action && campaign.exotel_sid) {
-      const tenant = await Tenant.findById(req.user.tenant_id);
-      try {
-        await exotelService.updateCampaign(tenant, campaign.exotel_sid, {
-          action,
-        });
-      } catch (err) {
-        return res.status(400).json({ success: false, message: err.message });
-      }
-    }
-
-    if (action) {
-      campaign.status =
-        action === 'complete'
-          ? 'Completed'
-          : action === 'pause'
-            ? 'paused'
-            : action === 'resume'
-              ? 'InProgress'
-              : action;
-      await campaign.save();
-    }
-
-    res.status(200).json({ success: true, data: campaign });
   } catch (error) {
     next(error);
   }

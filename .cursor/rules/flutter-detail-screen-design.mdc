@@ -1,0 +1,21 @@
+---
+description: Detail screen UX pattern for Flutter pages
+globs: app/voice_nest/lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter Detail Screen Design
+
+- Keep detail screens clean and scannable, following the Contacts detail experience.
+- Show primary identity in the app bar title (use entity name; avoid generic titles like "Details").
+- Use a single top summary hero (avatar/icon + name + secondary identity).
+- For overview metadata, use section containers with label/value rows (not one card per field).
+- For large child datasets (calls, logs, events), render compact cards in a list.
+- Each compact row should open/expand to reveal full related key/value details.
+- Add client-side filtering for the primary identifier (for calls, filter by number).
+- Provide clear empty states:
+  - no backend data available
+  - no local filter matches
+- Preserve list performance and readability:
+  - compact collapsed rows
+  - defer full details to expanded state

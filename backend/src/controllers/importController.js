@@ -26,10 +26,11 @@ exports.downloadTemplate = (req, res, next) => {
 
 exports.runImport = async (req, res, next) => {
   try {
-    const { type, csvText } = req.body || {};
+    const { type, csvText, sync_to_exotel } = req.body || {};
     const result = await ImportRunner.run(type, csvText, {
       tenant_id: req.user.tenant_id,
       user: req.user,
+      sync_to_exotel: Boolean(sync_to_exotel),
     });
     return res.status(200).json({ success: true, data: result });
   } catch (e) {

@@ -4,7 +4,7 @@ const { getDefinition } = require('./registry');
  * Generic CSV import runner: parse → validate rows → dedupe (optional per type) → persist.
  * @param {string} type - registry key, e.g. "contacts"
  * @param {string} csvText - raw UTF-8 CSV
- * @param {{ tenant_id: import('mongoose').Types.ObjectId, user?: object }} context
+ * @param {{ tenant_id: import('mongoose').Types.ObjectId, user?: object, sync_to_exotel?: boolean }} context
  */
 async function run(type, csvText, context) {
   const def = getDefinition(type);
@@ -61,7 +61,7 @@ async function run(type, csvText, context) {
 
   for (const { normalized, row } of merged.values()) {
     try {
-      const r = await def.persistOne(normalized, context.tenant_id);
+      const r = await def.persistOne(normalized, context.tenant_id, context);
       if (r.created) inserted += 1;
       else updated += 1;
     } catch (e) {
